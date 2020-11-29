@@ -21,8 +21,8 @@ svn_URL     = "$URL: https://diabepi.igmm.ed.ac.uk/svn/sdrnepi/trunk/projects/na
 #' opts options object containing all study options
 #' 
 #' @param
-#' surv.obj the survival dataset where we only use the exit slice 
-#' 
+#' surv.obj the survival dataset including N rows based on the
+#' study start date, end date and sliced time intervals between
 #' 
 cvdRiskModelForward <- function(opts, surv.obj) {
   
@@ -176,16 +176,9 @@ cvdRiskModelForward <- function(opts, surv.obj) {
           ), skip.global = TRUE 
       )
   
-  
-  
-  
-  
   # Crude C-statistic as sanity.check
   pROC::auc(dataset[[outcome]], 
       predict(forward.model, type="response") / dataset$slice.fu)
-  
-  
-  
   
   # Crude calibration plot as sanity.check
   rDiabSource("functions.R", topic = "common", 
@@ -210,10 +203,7 @@ cvdRiskModelForward <- function(opts, surv.obj) {
           nrow(dataset)," person/yrs)"))
   dev.off()
   
-
-  
   dataset.incprior <- rbind(surv.table.priors, surv.obj$surv.table)
-  
   
   # Bring in the model
   model.in <- readRDS(dataPath(paste0("forward.model.Rdata")))$data.obj
@@ -233,15 +223,11 @@ cvdRiskModelForward <- function(opts, surv.obj) {
       as.model.matrix(dataset.incprior[,.(smoker.evr.max)], 
           "smoker.evr.max", c('Smoker'))[,-1]
   
-
-  
   # Crude C-statistic as sanity.check
 
 pROC::auc(dataset.incprior[[outcome]], 
     predict(model.in, newdata = dataset.incprior, type="response") / dataset.incprior$slice.fu)
 
-
-  
   # Crude calibration plot as sanity.check + priors
   rDiabSource("functions.R", topic = "common", 
       project = "national_dataset", local=F) 
@@ -267,10 +253,7 @@ pROC::auc(dataset.incprior[[outcome]],
           nrow(dataset.incprior)," person/yrs)"))
   dev.off()
   
-  
-  
-  
-  
+
   forward.model.table <- 
       data.table::data.table(jtools::summ(forward.model, 
               confint=TRUE, exp=TRUE, )$coeftable, keep.rownames = TRUE)
@@ -551,7 +534,6 @@ pROC::auc(dataset.incprior[[outcome]],
       )
   )
   
-  
   wevid.result.1yr.20to40 <- with(dataset[roc.age.band=='20-40'],
       Wdensities(
           cvd.any.bin,
@@ -616,8 +598,6 @@ pROC::auc(dataset.incprior[[outcome]],
       )
   )
   
-  
-
   # Wevid table results	
   all.wevid.full <- data.table(rbind(
           cbind(Group="All", summary(wevid.result.forward)),
